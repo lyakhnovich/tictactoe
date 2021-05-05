@@ -2,32 +2,36 @@ import React from "react";
 import ReactDOM from "react-dom";
 import './index.css';
 
-class Square extends React.Component {
-  render() {
-    return (
-      <button
-        className="square"
-        onClick={() => this.props.onClick()}
-      >
-        {this.props.value}
-      </button>
-    );
-  }
+
+
+function Square(props) {
+  return (
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
+  )
 }
+
 
 class Board extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      allSquares: Array(9).fill(null), //Метод fill() заполняет все элементы массива от начального до конечного индексов одним значением.
+      allSquares: Array(9).fill(null),
+      xIsNext: true,
     };
   }
 
   handleClick(i) {
     const oneSquare = this.state.allSquares.slice();
-    oneSquare[i] = 'X';
-    console.log(i + ' ' + oneSquare[i]);
-    this.setState({allSquares: oneSquare});
+    if (calculateWinner(oneSquare) || oneSquare[i]) {
+      return;
+    }
+    oneSquare[i] = this.state.xIsNext ? 'X' : 'O';
+    this.setState({
+      allSquares: oneSquare,
+      xIsNext: !this.state.xIsNext,
+    });
   }
 
   renderSquare(i) {
@@ -41,7 +45,13 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: X';
+    const winner = calculateWinner(this.state.allSquares);
+    let status;
+    if (winner) {
+      status = 'Выиграл ' + winner;
+    } else {
+      status = 'Следующий ход: ' + (this.state.xIsNext ? 'X' : 'O');
+    }
 
     return (
       <div>
@@ -61,6 +71,16 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      history: [{
+        allSquares: Array(9).fill(null),
+      }],
+      xIsNext: true,
+    }
+  }
+
   render() {
     return (
       <div className="game">
@@ -74,6 +94,29 @@ class Game extends React.Component {
       </div>
     );
   }
+}
+
+
+function calculateWinner(allSquares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+
+  for(let i = 0; i < lines.length; i++) {
+    const [a, b, c]  = lines[i];
+
+    if (allSquares[a] && allSquares[a] === allSquares[b] && allSquares[a] === allSquares[c]) {
+      return allSquares[a];
+    }
+  }
+return null;
 }
 
 // ========================================
